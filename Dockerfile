@@ -4,9 +4,13 @@ WORKDIR /function
 
 RUN groupadd --gid 1000 fn && adduser --uid 1000 --gid fn fn
 
-RUN microdnf -y install python3 python3-pip \
-    oracle-instantclient-release-23ai-el9 oracle-instantclient-basic \
-    openssl ca-certificates ca-certificates-policy && \
+RUN microdnf -y install python3 python3-pip && \
+    microdnf clean all
+
+RUN microdnf install oracle-instantclient-release-23ai-el9
+RUN microdnf install oracle-instantclient-basic
+
+RUN microdnf -y install openssl ca-certificates ca-certificates-policy && \
     microdnf clean all
 
 RUN mkdir /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
