@@ -10,7 +10,7 @@ RUN microdnf -y install python3 python3-pip && \
 RUN microdnf install oracle-instantclient-release-23ai-el9
 RUN microdnf install oracle-instantclient-basic
 
-RUN microdnf -y install openssl ca-certificates ca-certificates-policy && \
+RUN microdnf -y install openssl ca-certificates && \
     microdnf clean all
 
 RUN mkdir /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
