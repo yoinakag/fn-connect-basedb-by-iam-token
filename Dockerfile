@@ -16,6 +16,8 @@ RUN microdnf -y install openssl ca-certificates && \
 RUN mkdir /tmp/.oci && chown -R fn:fn /tmp/.oci
 RUN mkdir /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
 
+RUN echo "132.145.147.69 basedb.subnet07111020.vcn04201554.oraclevcn.com basedb" >> /etc/hosts
+
 ENV LD_LIBRARY_PATH=/usr/lib/oracle/23/client64/lib
 ENV OCI_RESOURCE_PRINCIPAL_VERSION=2.2
 ENV PATH=/usr/lib/oracle/23/client64/bin:$PATH
