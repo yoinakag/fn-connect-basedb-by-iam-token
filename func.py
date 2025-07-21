@@ -12,7 +12,7 @@ basedb_ocid = os.getenv("BASEDB_OCID")
 class TokenHandlerIAM:
 
     def __init__(self,
-                 dir_name="/home/fn/.oci/db-token/",
+                 dir_name="/tmp/.oci/db-token/",
                  command="oci iam db-token get --auth resource_principal --region {} --scope urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)):
         self.dir_name = dir_name
         self.command = command

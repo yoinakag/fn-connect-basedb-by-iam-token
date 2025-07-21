@@ -13,6 +13,7 @@ RUN microdnf install oracle-instantclient-basic
 RUN microdnf -y install openssl ca-certificates && \
     microdnf clean all
 
+RUN mkdir /tmp/.oci && chown -R fn:fn /tmp/.oci
 RUN mkdir /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
 
 ENV LD_LIBRARY_PATH=/usr/lib/oracle/23/client64/lib
