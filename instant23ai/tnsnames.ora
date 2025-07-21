@@ -1,0 +1,5 @@
+iam =
+   (description= (retry_count=20)(retry_delay=3)
+      (address=(protocol=tcps)(port=1522)(host=basedb))
+      (connect_data=(service_name=basedb_service_name))
+      (security=(ssl_server_dn_match=yes)(TOKEN_AUTH=OCI_TOKEN)))
