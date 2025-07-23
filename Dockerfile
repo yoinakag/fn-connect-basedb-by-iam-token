@@ -32,7 +32,7 @@ ADD . /function/
 COPY instant23ai/. /tmp/instant23ai/
 
 RUN sed -i "s/basedb_service_name/pdb01.subnet07111020.vcn04201554.oraclevcn.com/g" /tmp/instant23ai/tnsnames.ora
-
+RUN cat /tmp/instant23ai/tnsnames.ora
 
 RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir -r /function/requirements.txt && \
