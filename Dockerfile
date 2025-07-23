@@ -7,9 +7,6 @@ RUN groupadd --gid 1000 fn && adduser --uid 1000 --gid fn fn
 RUN microdnf -y install python3 python3-pip && \
     microdnf clean all
 
-RUN microdnf -y install oraclelinux-developer-release-el9
-RUN microdnf install python39-oci-cli
-
 RUN microdnf install oracle-instantclient-release-23ai-el9
 RUN microdnf install oracle-instantclient-basic
 

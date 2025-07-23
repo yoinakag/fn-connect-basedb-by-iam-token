@@ -1,48 +1,101 @@
 import io
 import os
+import oci
 import json
 import oracledb
 from fdk import response
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+
+def _get_key_pair():
+    """
+    Generates a public-private key pair for proof of possession.
+    """
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=4096,
+    )
+    private_key_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode("utf-8")
+
+    public_key_pem = (
+        private_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode("utf-8")
+    )
+
+    if not oracledb.is_thin_mode():
+        p_key = "".join(
+            line.strip()
+            for line in private_key_pem.splitlines()
+            if not (
+                line.startswith("-----BEGIN") or line.startswith("-----END")
+            )
+        )
+        private_key_pem = p_key
+
+    return {"private_key": private_key_pem, "public_key": public_key_pem}
+
+def _generate_access_token(client, token_auth_config):
+    """
+    Token generation logic used by authentication methods.
+    """
+    key_pair = _get_key_pair()
+    scope = token_auth_config.get("scope", "urn:oracle:db::id::*")
+
+    details = oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
+        scope=scope, public_key=key_pair["public_key"]
+    )
+    response = client.generate_scoped_access_token(
+        generate_scoped_access_token_details=details
+    )
+
+    return (response.data.token, key_pair["private_key"])
+
+def _generate_access_token(client, token_auth_config):
+    """
+    Token generation logic used by authentication methods.
+    """
+    key_pair = _get_key_pair()
+    scope = token_auth_config.get("scope", "urn:oracle:db::id::*")
+
+    details = oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
+        scope=scope, public_key=key_pair["public_key"]
+    )
+    response = client.generate_scoped_access_token(
+        generate_scoped_access_token_details=details
+    )
+
+    return (response.data.token, key_pair["private_key"])
 
 # Get connection parameters from enviroment
 basedb_region = os.getenv("BASEDB_REGION")
 basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
 basedb_ocid = os.getenv("BASEDB_OCID")
 
-class TokenHandlerIAM:
-
-    def __init__(self,
-                 dir_name="/tmp/.oci/db-token/",
-                 command="oci iam db-token get --auth resource_principal --region {} --scope urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)):
-        self.dir_name = dir_name
-        self.command = command
-        self.token = None
-        self.private_key = None
-
-    def __call__(self, refresh):
-        if refresh:
-            if os.system(self.command) != 0:
-                raise Exception("token command failed!")
-        if self.token is None or refresh:
-            self.read_token_info()
-        return (self.token, self.private_key)
-
-    def read_token_info(self):
-        token_file_name = os.path.join(self.dir_name, "token")
-        pkey_file_name = os.path.join(self.dir_name, "oci_db_key.pem")
-        with open(token_file_name) as f:
-            self.token = f.read().strip()
-        with open(pkey_file_name) as f:
-            if oracledb.is_thin_mode():
-                self.private_key = f.read().strip()
-            else:
-                lines = [s for s in f.read().strip().split("\n")
-                         if s not in ('-----BEGIN PRIVATE KEY-----',
-                                      '-----END PRIVATE KEY-----')]
-                self.private_key = "".join(lines)
-
-
+scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib",config_dir="/tmp/instant23ai")
+
+# signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+signer = oci.auth.signers.get_resource_principals_signer()
+client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
+token_auth_config = {
+    "scope":"urn:oracle:db::id::ocid1.compartment.oc1..aaaaaaaardb3dtrfgv5dde2rqisd44p3f6ihjtbd3gnbtwq64nq6lzngxotq::ocid1.dbsystem.oc1.iad.anuwcljsak7gbriafwglhghmau64pqtimdyzqhkoryf7shdzs5ehuzo6t6sa",
+    "region":"us-ashburn-1"
+}
+oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib",config_dir="/home/opc/instant23ai")
+# connection = oracledb.connect(
+#     access_token=_generate_access_token(client, token_auth_config),
+#     dsn="iam",
+#     externalauth=True
+# )
+# print(connection)
 
 #
 # Function Handler: executed every time the function is invoked
@@ -57,10 +110,11 @@ def read_all_users(ctx):
             FROM dual
         """
         with oracledb.connect(
-            access_token=TokenHandlerIAM(),
+            access_token=_generate_access_token(client, token_auth_config),
             dsn="iam",
             externalauth=True
         ) as dbconnection:
+            print(dbconnection)
             with dbconnection.cursor() as dbcursor:
                 dbcursor.execute(sql_statement)
                 dbcursor.rowfactory = lambda *args: dict(zip([d[0] for d in dbcursor.description], args))
