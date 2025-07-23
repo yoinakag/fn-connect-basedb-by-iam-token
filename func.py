@@ -74,13 +74,16 @@ def _generate_access_token(client, token_auth_config):
 
     return (response.data.token, key_pair["private_key"])
 
+print("init")
 # Get connection parameters from enviroment
 basedb_region = os.getenv("BASEDB_REGION")
 basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
 basedb_ocid = os.getenv("BASEDB_OCID")
+print("get parameter")
 
 scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib",config_dir="/tmp/instant23ai")
+print("init oracle client")
 
 # signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
 signer = oci.auth.signers.get_resource_principals_signer()
@@ -89,7 +92,8 @@ token_auth_config = {
     "scope":"urn:oracle:db::id::ocid1.compartment.oc1..aaaaaaaardb3dtrfgv5dde2rqisd44p3f6ihjtbd3gnbtwq64nq6lzngxotq::ocid1.dbsystem.oc1.iad.anuwcljsak7gbriafwglhghmau64pqtimdyzqhkoryf7shdzs5ehuzo6t6sa",
     "region":"us-ashburn-1"
 }
-oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib",config_dir="/home/opc/instant23ai")
+print("get client")
+
 # connection = oracledb.connect(
 #     access_token=_generate_access_token(client, token_auth_config),
 #     dsn="iam",
@@ -101,6 +105,7 @@ oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib",config_dir
 # Function Handler: executed every time the function is invoked
 #
 def handler(ctx, data: io.BytesIO = None):
+    print("handle")
     return read_all_users(ctx)
 
 def read_all_users(ctx):
@@ -119,10 +124,6 @@ def read_all_users(ctx):
                 dbcursor.execute(sql_statement)
                 dbcursor.rowfactory = lambda *args: dict(zip([d[0] for d in dbcursor.description], args))
                 results = dbcursor.fetchall()
-
-                for result in results:
-                    if result.get("CREATED_ON"):
-                        result["CREATED_ON"] = result["CREATED_ON"].isoformat()
 
                 return response.Response(
                     ctx,
