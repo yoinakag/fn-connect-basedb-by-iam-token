@@ -29,13 +29,15 @@ ENV TNS_ADMIN=/tmp/instant23ai
 ENV PYTHONPATH=/function
 
 ADD . /function/
-COPY instant23ai/ /tmp/instant23ai/
+COPY instant23ai/. /tmp/instant23ai/
+
+RUN sed -i "s/basedb_service_name/pdb01.subnet07111020.vcn04201554.oraclevcn.com/g" /tmp/instant23ai/tnsnames.ora
+
 
 RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir -r /function/requirements.txt && \
     rm -f /function/requirements.txt /function/README.md /function/Dockerfile /function/func.yaml
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+ENV PYTHONPATH=/python
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/fdk", "/function/func.py", "handler"]
