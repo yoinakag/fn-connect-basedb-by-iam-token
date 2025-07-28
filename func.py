@@ -7,8 +7,6 @@ from fdk import response
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
-
-
 # Get connection parameters from enviroment
 basedb_region = os.getenv("BASEDB_REGION")
 basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
@@ -90,6 +88,45 @@ def _generate_access_token(client, token_auth_config):
 
     return (response.data.token, key_pair["private_key"])
 
+def print_directory_files(directory_path):
+    """打印指定目录下的文件列表及其内容"""
+    try:
+        if not os.path.exists(directory_path):
+            print(f"错误: 目录 '{directory_path}' 不存在")
+            return
+        
+        if not os.path.isdir(directory_path):
+            print(f"错误: '{directory_path}' 不是一个目录")
+            return
+        
+        files = os.listdir(directory_path)
+        
+        if not files:
+            print(f"目录 '{directory_path}' 为空")
+            return
+        
+        print(f"目录 '{directory_path}' 下的文件列表:")
+        for filename in files:
+            file_path = os.path.join(directory_path, filename)
+            
+            if os.path.isfile(file_path):
+                print(f"\n=== 文件: {filename} ===")
+                
+                try:
+                    with open(file_path, 'r') as file:
+                        content = file.read()
+                        if content.strip():  
+                            print(content)
+                        else:
+                            print("文件内容为空")
+                except Exception as e:
+                    print(f"无法读取文件内容: {str(e)}")
+            else:
+                print(f"- {filename} (目录，跳过)")
+                
+    except Exception as e:
+        print(f"发生错误: {str(e)}")
+
 def read_all_users(ctx):
     try:
         sql_statement = """
@@ -103,6 +140,7 @@ def read_all_users(ctx):
             "region":"us-ashburn-1"
         }
         
+        print_directory_files("/tmp/instant23ai")
         with oracledb.connect(
             access_token=_generate_access_token(client, token_auth_config),
             dsn="iam",
