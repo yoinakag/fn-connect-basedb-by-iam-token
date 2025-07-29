@@ -31,6 +31,7 @@ ADD . /function/
 
 RUN mkdir -p /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
 COPY instant23ai/. /tmp/instant23ai/
+RUN chown -R fn:fn /tmp/instant23ai
 
 RUN sed -i "s/basedb_service_name/pdb01.subnet07111020.vcn04201554.oraclevcn.com/g" /tmp/instant23ai/tnsnames.ora
 
