@@ -14,7 +14,6 @@ RUN microdnf -y install openssl ca-certificates && \
     microdnf clean all
 
 RUN mkdir /tmp/.oci && chown -R fn:fn /tmp/.oci
-RUN mkdir /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
 
 RUN echo "132.145.147.69 basedb.subnet07111020.vcn04201554.oraclevcn.com basedb" >> /etc/hosts
 
@@ -29,10 +28,11 @@ ENV TNS_ADMIN=/tmp/instant23ai
 ENV PYTHONPATH=/function
 
 ADD . /function/
+
+RUN mkdir -p /tmp/instant23ai && chown -R fn:fn /tmp/instant23ai
 COPY instant23ai/. /tmp/instant23ai/
 
 RUN sed -i "s/basedb_service_name/pdb01.subnet07111020.vcn04201554.oraclevcn.com/g" /tmp/instant23ai/tnsnames.ora
-RUN cat /tmp/instant23ai/tnsnames.ora
 
 RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir -r /function/requirements.txt && \
@@ -40,4 +40,5 @@ RUN pip3 install --upgrade pip && \
 
 ENV PYTHONPATH=/python
 
+RUN ls -la /tmp && ls -la /tmp/instant23ai
 ENTRYPOINT ["/usr/local/bin/fdk", "/function/func.py", "handler"]
