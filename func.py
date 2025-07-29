@@ -13,7 +13,7 @@ basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
 basedb_ocid = os.getenv("BASEDB_OCID")
 
 scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)
-oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/instant23ai")
+oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/function/instant23ai")
 
 #
 # Function Handler: executed every time the function is invoked
@@ -140,7 +140,7 @@ def read_all_users(ctx):
             "region":"us-ashburn-1"
         }
         
-        print_directory_files("/tmp/instant23ai")
+        print_directory_files("/function/instant23ai")
         with oracledb.connect(
             access_token=_generate_access_token(client, token_auth_config),
             dsn="iam",
