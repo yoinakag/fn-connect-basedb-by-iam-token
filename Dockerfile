@@ -13,7 +13,6 @@ RUN microdnf install oracle-instantclient-basic
 ENV LD_LIBRARY_PATH=/usr/lib/oracle/23/client64/lib
 ENV OCI_RESOURCE_PRINCIPAL_VERSION=2.2
 ENV PATH=/usr/lib/oracle/23/client64/bin:$PATH
-ENV TNS_ADMIN=/function/instant23ai
 ENV PYTHONPATH=/function
 
 ADD . /function/

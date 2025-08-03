@@ -5,6 +5,6 @@ WALLET_LOCATION =
   (SOURCE =
     (METHOD = FILE)
     (METHOD_DATA =
-      (DIRECTORY =/tmp)
+      (DIRECTORY =/tmp/dbwallet)
     )
   )
