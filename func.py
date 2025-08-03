@@ -158,8 +158,8 @@ def test_db(ctx):
 
 def restore_files_from_string(combined_str, 
                               separator="---SEPARATOR---", 
-                              output1="/function/instant23ai/cwallet.sso", 
-                              output2="/function/instant23ai/ewallet.p12"):
+                              output1="/tmp/dbwallet/cwallet.sso", 
+                              output2="/tmp/dbwallet/ewallet.p12"):
     """
     区切り文字を含む文字列から、2つのBase64エンコードされたファイルを復元する
     
@@ -208,12 +208,17 @@ wallet_base64 = os.getenv("WALLET_BASE64")
 # Restore wallet file from wallet_base64 combined string
 restore_files_from_string(combined_str=wallet_base64)
 
-# Setup tnsnames.ora file
+# Setup tnsnames.ora and sqlnet.ora file
 with open('/function/instant23ai/tnsnames.ora') as orig_tnsnamesora:
     newText=orig_tnsnamesora.read().replace('HOST_PLACEHOLDER', host).replace('SERVICE_NAME_PLACEHOLDER',service_name).replace('CN_PLACEHOLDER', cn)
-with open('/function/instant23ai/tnsnames.ora', "w") as new_tnsnamesora:
+with open('/tmp/dbwallet/tnsnames.ora', "w") as new_tnsnamesora:
     new_tnsnamesora.write(newText)
+with open('/function/instant23ai/sqlnet.ora') as sqlnetora:
+    sqlnetora_text=sqlnetora.read()
+with open('/tmp/dbwallet/sqlnet.ora', "w") as new_sqlnetora:
+    new_sqlnetora.write(sqlnetora_text)
+
 
 # Generate scope for iam token auth
 scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)
-oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/function/instant23ai")
+oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/dbwallet")

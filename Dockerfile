@@ -20,6 +20,11 @@ ADD . /function/
 
 RUN chown -R fn:fn /function
 
+RUN mkdir /tmp/dbwallet
+RUN chown -R fn:fn /tmp/dbwallet
+
+ENV TNS_ADMIN=/tmp/dbwallet
+
 RUN pip3 install --upgrade pip && \
     pip3 install --no-cache-dir -r /function/requirements.txt && \
     rm -f /function/requirements.txt /function/README.md /function/Dockerfile /function/func.yaml
