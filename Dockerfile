@@ -10,9 +10,6 @@ RUN microdnf -y install python3 python3-pip && \
 RUN microdnf install oracle-instantclient-release-23ai-el9
 RUN microdnf install oracle-instantclient-basic
 
-RUN microdnf -y install openssl ca-certificates && \
-    microdnf clean all
-
 ENV LD_LIBRARY_PATH=/usr/lib/oracle/23/client64/lib
 ENV OCI_RESOURCE_PRINCIPAL_VERSION=2.2
 ENV PATH=/usr/lib/oracle/23/client64/bin:$PATH
