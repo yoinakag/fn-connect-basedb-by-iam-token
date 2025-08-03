@@ -1,5 +1,12 @@
-iam =
-   (description= (retry_count=20)(retry_delay=3)
-      (address=(protocol=tcps)(port=1522)(host=basedb))
-      (connect_data=(service_name=basedb_service_name))
-      (security=(ssl_server_dn_match=yes)(TOKEN_AUTH=OCI_TOKEN)))
+IAM =
+   (DESCRIPTION= 
+      (RETRY_COUNT=20)
+      (RETRY_DELAY=3)
+      (ADDRESS=(PROTOCOL=TCPS)(PORT=1522)(HOST=HOST_PLACEHOLDER))
+      (CONNECT_DATA=(SERVICE_NAME=SERVICE_NAME_PLACEHOLDER))
+      (SECURITY=
+         (SSL_SERVER_CERT_DN="CN=CN_PLACEHOLDER")
+         (SSL_SERVER_DN_MATCH=YES)
+         (TOKEN_AUTH=OCI_TOKEN)
+      )
+   )
