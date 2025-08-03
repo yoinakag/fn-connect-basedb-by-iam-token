@@ -133,7 +133,7 @@ def test_db(ctx):
             "region":"us-ashburn-1"
         }
         
-        print_directory_files("/function/instant23ai")
+        print_directory_files("/tmp/dbwallet")
         with oracledb.connect(
             access_token=_generate_access_token(client, token_auth_config),
             dsn="iam",
