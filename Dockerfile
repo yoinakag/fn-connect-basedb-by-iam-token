@@ -30,5 +30,4 @@ RUN pip3 install --upgrade pip && \
 
 ENV PYTHONPATH=/python
 
-RUN ls -la /function && ls -la /function/instant23ai
 ENTRYPOINT ["/usr/local/bin/fdk", "/function/func.py", "handler"]
