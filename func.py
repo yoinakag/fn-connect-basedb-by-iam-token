@@ -12,19 +12,19 @@ from cryptography.hazmat.primitives import serialization
 # Function Handler: executed every time the function is invoked
 #
 def handler(ctx, data: io.BytesIO = None):
-    return test_db(ctx)
+    return read_all_users(ctx)
 
-def test_db(ctx):
+def read_all_users(ctx):
     try:
         sql_statement = """
-            SELECT 1+1
-            FROM dual
+            SELECT ID, FIRST_NAME, LAST_NAME, USERNAME, CREATED_ON
+            FROM users
         """
         
         client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
         token_auth_config = {
             "scope": scope,
-            "region": "us-ashburn-1"
+            "region": basedb_region
         }
         
         with oracledb.connect(
