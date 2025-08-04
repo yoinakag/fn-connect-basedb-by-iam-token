@@ -16,63 +16,20 @@ IAMトークンを使用してデータベースに接続するためには、�
 
 3. IAMユーザーとのDBスキーマのマッピング
 -- 排他的マッピングユーザーの作成
-CREATE USER func IDENTIFIED GLOBALLY AS 'IAM_PRINCIPAL_NAME=emp1'; -- DBスキーマ:emp1 = IAMユーザ:emp1
-grant connect to func; -- connect権限を付与
-
 CREATE USER dbusers IDENTIFIED GLOBALLY AS 'IAM_GROUP_NAME=dg_instance';
 grant connect,resource to dbusers;
 
-
-basedb_region = os.getenv("BASEDB_REGION")
-basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
-basedb_ocid = os.getenv("BASEDB_OCID")
-cn = os.getenv("CN")
-host = os.getenv("HOST")
-service_name = os.getenv("SERVICE_NAME")
-wallet_base64 = os.getenv("WALLET_BASE64")
-
-BASEDB_REGION:us-ashburn-1
-BASEDB_COMPARTMENT_OCID:ocid1.compartment.oc1..aaaaaaaardb3dtrfgv5dde2rqisd44p3f6ihjtbd3gnbtwq64nq6lzngxotq
-BASEDB_OCID:ocid1.dbsystem.oc1.iad.anuwcljsak7gbriam6ern6pf4gz5ascdgpx5rj6slrhrrzhppw2lxrjqra6q
-CN:basedb23ai
-HOST:193.122.140.64
-SERVICE_NAME:db0801_pdb1.subnet07111020.vcn04201554.oraclevcn.com
-WALLET_BASE64:
-ofhONgAAAAYAAAAhBo9hbHDDm7XiQj+zs96yB/pEge8rtkE7RA0BZKIaND0HMIID6gIBAzCCA7AG
-CSqGSIb3DQEHAaCCA6EEggOdMIIDmTCCA5UGCSqGSIb3DQEHBqCCA4YwggOCAgEAMIIDewYJKoZI
-hvcNAQcBMFoGCSqGSIb3DQEFDTBNMCwGCSqGSIb3DQEFDDAfBAhe0gn1zGyEFwICJxACASAwDAYI
-KoZIhvcNAgkFADAdBglghkgBZQMEASoEEMg1vg3R6cmMR7HTGhaPDRGAggMQ2nZJJ8RFvZ6JeuQ2
-zZwuotz6Zv0tXx8Dr+O1Tv/0EAgc8qqS0KppUiU4IAEvP4Y0uN6IxLdwkOYdfXd0/RkuLXi9tgZ1
-T8RCj32gOhgNGfm0e4wgonZInFbIJTcmuX/fUWxcmCDvcWq5Zt3tmwyOMIvChzXK/FHPyTxAfWkO
-/m+bN26g2y6k2TCyqtVAciZD6KlNTkTk0+4bNyAt4ytQVvaIQGCMNsI9ped0kJl7scqerCtdeZwf
-1OtMgkXFiaL2PCkm8NBZqHb7oYzkl1oHOXwfBKyBup30fdeaQjr3GlfqVAhvwJUX5T6R54upPVZy
-K+LtsSK7oDLLKPlyx2M/a/Ymw8B0C6uMolDzmPRwvLEaoPxfMODucppZobTbMZpGs6U5JeNVIIgp
-GJ+x9kcvVGJvIdBZT73u6O5l/qG8l1KgDfznzbISqvtMngF8Vtol1YQhy56qbssYH9QgKQ3qK45E
-qFJeQB/+PX4NV288wOM+T4ZIN8RkW+kx8DU8udo5hJXiFgB0a00S1kPKE2W575/JWVUA7yjYH6Mo
-+fD3dreBOGWtxOjlIVs8VPXyNsDOfN9yZOk/xQeS52BmkOh1qw1fVANfGDe5n8lrhu4DchAARDp4
-XrNz8sfHi0PCKZNqIayMiCCZ3RtJYm+zPhrrpxpP/JQB2SPj3sSx2U0FbdS1Vwx83MibN8jK/g8b
-kKMrAkFcWMBfh7B62FjzOSQLHErx6ePnmN3mBk7kePecjWl26+vk8vcCbXeiw7OzIX39CTVOaDSU
-/xtL39pVXy/M0XBZ8WqrNPbDbVEop42wOHoDoqyoqiZRnenCFvMIQfW0grxVqchwJysir3V9SjAr
-AkUnucAypRMsQVmwhKL43MtmtrVEuLHzeK3rgjOoxLMP1TpCwhL1FwX3IVGwgx84PtLGxYXW8OT/
-V1yaQcYU6aFSJEpZFSwxE6WkNAbwQjE0RZ9iGqq5vZx+ZVRp/qcA8VizxnI5WWn5UYSLe5YEjmxw
-3UX5OqXqQagq8BaESlDcuO6CnRf7FXdm1XeYATkkajAxMCEwCQYFKw4DAhoFAAQU4W8yhI3S6jY8
-TRws2QbsBR40+b4ECIKIQr5kaxCGAgInEA==
----SEPARATOR---
-MIID6gIBAzCCA7AGCSqGSIb3DQEHAaCCA6EEggOdMIIDmTCCA5UGCSqGSIb3DQEHBqCCA4YwggOC
-AgEAMIIDewYJKoZIhvcNAQcBMFoGCSqGSIb3DQEFDTBNMCwGCSqGSIb3DQEFDDAfBAgRXlQfueOY
-1QICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEB0BGNkhWa6XVp2gR/4ES5OAggMQ
-ZYtp2SJAhuUVefkv0FRhhhWyKirvU96+v0UYumNIPeywEP/8+08L+9sD2y50a7V1MoBs+KWdjnUa
-xcHDbEcE+VDzh8zQoF3RSFP3vOC+Bfw54sCR4bRm+jT3diDoLXqoGmZ12Kowu7CbnTV51KyaRlfy
-KaTarA9CcYZzJ8825UFlQVIsfoVtMeyIlfP9B7l+OgQ9bdjJgeQyQUCeX+V+1vP8GfuREOH9PzS6
-L16+Yyq0IgT89whUsNaZby3fPGBTPGmtq0HrwL6xEuEDJDrmdRewTnJneVD44PxbbGNX5fIc1NmQ
-7uXL/mGaeXWFQfBoFSdF8v9zzFHGvh5z/AiDIY9AipD1FYk1EbKZlmtjCLd9Q1WVql4pvLqxhYow
-rqX6cUFAKTqK0AIOjl2/lvMWVFBuJAO/A5Tv1GkWy7B39+kjETazcPWD+SBh0eLEjUPKCDUrEFL5
-sylFIuHRueLd0Jb89vCL/GTAbK99pilVcHiTJVd5Ld0jam6+lUt7Gzhb2FID9tEI0J2t3tTk2VLE
-jVOAzm58qhmrnKUJ9r3zjQUNRz7oxy3rdGuTCj9M8MPInTXAffDB5mtZCahPLjDtp0vUIgiROxCr
-6kUNkoV539tuBr3Dzy2PcUhQ9CAC71GWZ+x5oSnFpjk9ms6XbhgEavkjvLV3DPw/bK6Yh3cW3FY7
-3HwsdQzG8REfTbB2K7aDq5HA0MI8stCtpzUXTM/48+dtPkyHt94js61jXeqtVEHaH5kIwnlPS++Z
-apbh+17a9JS+JAUumP04J2X1iNjSxKAY9XzTIA8kd4zqIR9TBdW3Yw8gfu7WdxpyPayWQtXtNAOV
-mA9ZUpXzPPFOTzNIKqJhaZ+jsf6093YWFtbsmUsH4xQ8rPNPQ3qF5EdfTlf4voAAhBaCXYEvCEIW
-mCltYcjOZ/7m+zl2yY8+cYYE06vym0mjTC4emYPLK7fNXJsKA5zgr9KnPJHUTWxcqRehdc/NMu9L
-+Pv80/CwxZjvdZPZ4WxkoF/AwIW+lDvP9PaoWRxng7VLZWgrJkujinPm/DAxMCEwCQYFKw4DAhoF
-AAQUc9F8uuVTTPyNSt7R0IitWpxrLrwECIKIQr5kaxCGAgInEA==
+4. ユーザー表の作成
+CREATE TABLE dbusers.users ( 
+    "ID"  VARCHAR2(32 BYTE) DEFAULT ON NULL sys_guid(), 
+    "FIRST_NAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
+    "LAST_NAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
+    "USERNAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
+    "CREATED_ON"  TIMESTAMP(6) DEFAULT ON NULL current_timestamp, 
+    CONSTRAINT "USER_PK" PRIMARY KEY ( "ID" )
+);
+INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('John', 'Doe', 'john.doe');
+INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('Jane', 'Smith', 'jane.smith');
+INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('Michael', 'Johnson', 'michael.j');
+INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('Emily', 'Davis', 'emily.d');
+INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('David', 'Wilson', 'david.wilson');
