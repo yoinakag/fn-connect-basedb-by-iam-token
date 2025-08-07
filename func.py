@@ -17,14 +17,13 @@ def handler(ctx, data: io.BytesIO = None):
 def read_all_users(ctx):
     try:
         sql_statement = """
-            SELECT ID, FIRST_NAME, LAST_NAME, USERNAME, CREATED_ON
-            FROM users
+            SELECT 1+1 from dual;
         """
         
         client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
         token_auth_config = {
             "scope": scope,
-            "region": basedb_region
+            "region": "us-ashburn-1"
         }
         
         with oracledb.connect(
@@ -241,4 +240,4 @@ scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/dbwallet")
 
 # Create users table and insert essential data
-drop_and_recreate_users_table()
+# drop_and_recreate_users_table()
