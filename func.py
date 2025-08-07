@@ -22,7 +22,7 @@ def read_all_users(ctx):
         
         client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
         token_auth_config = {
-            "scope": scope,
+            "scope": "urn:oracle:db::id::ocid1.compartment.oc1..aaaaaaaardb3dtrfgv5dde2rqisd44p3f6ihjtbd3gnbtwq64nq6lzngxotq::ocid1.dbsystem.oc1.iad.anuwcljsak7gbriafwglhghmau64pqtimdyzqhkoryf7shdzs5ehuzo6t6sa",
             "region": "us-ashburn-1"
         }
         
