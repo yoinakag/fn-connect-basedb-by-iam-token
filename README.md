@@ -1,8 +1,10 @@
-# 
+# OCI Function - Base Database を IAM トークンで接続
 
 ## 前提条件
 - Base Databaseインスタンスを作成していること
 - Base Databaseインスタンスがあるサブネットのセキュリティ・ルールもしくはNetwork Security Groupにてポート1522が開放されていること
+- OCIファンクション用のVCNを作成していること
+- OCIファンクションを利用するのポリシーを作成していること
 
 ## 1. Base Database側の設定
 作成したBase Database(23ai)で設定する
@@ -261,6 +263,7 @@ grant connect,resource to dbusers;
 ```
 
 ### 2-4. ユーザー表の作成
+
 ```
 CREATE TABLE dbusers.users ( 
     "ID"  VARCHAR2(32 BYTE) DEFAULT ON NULL sys_guid(), 
@@ -270,11 +273,24 @@ CREATE TABLE dbusers.users (
     "CREATED_ON"  TIMESTAMP(6) DEFAULT ON NULL current_timestamp, 
     CONSTRAINT "USER_PK" PRIMARY KEY ( "ID" )
 );
+/  
+
 INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('John', 'Doe', 'john.doe');
 INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('Jane', 'Smith', 'jane.smith');
 INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('Michael', 'Johnson', 'michael.j');
 INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('Emily', 'Davis', 'emily.d');
 INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('David', 'Wilson', 'david.wilson');
+
+COMMIT; 
+/
 ```
 
 ## 3. ファンクションのデプロイメント
+### 3-1. アプリケーションの作成
+- 名前: app-connect-basedb-by-iam-token
+- VCN: 事前に作成したVCN
+- サブネットコンパートメント: VCNサブネットにいるコンパートメント
+- サブネット: 事前に作成したVCNのサブネット
+- シェイプ: GENERIC_X86
+### 3-2. アプリケーション構成の設定
+### 3-3. ファンクションのデプロイメント

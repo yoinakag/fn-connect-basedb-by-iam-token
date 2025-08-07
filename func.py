@@ -48,6 +48,100 @@ def read_all_users(ctx):
         print('ERROR: Failed to read all users', ex, flush=True)
         raise
 
+def create_and_insert_users():
+    """
+    ユーザーテーブルの作成とデータ挿入を実行する関数
+    
+    引数:
+        db_config (dict): データベース接続情報を含む辞書
+            - user: ユーザー名
+            - password: パスワード
+            - dsn: 接続文字列 (例: "host:port/service_name")
+    """
+    # 処理対象のスキーマとテーブル名を定義
+    schema = "dbusers"
+    table_name = "users"
+    
+    try:
+        client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
+        token_auth_config = {
+            "scope": scope,
+            "region": basedb_region
+        }
+        
+        with oracledb.connect(
+            access_token=_generate_access_token(client, token_auth_config),
+            dsn="iam",
+            externalauth=True
+        ) as  conn:
+            print("データベース接続に成功しました")
+            
+            # テーブルの存在を確認
+            def check_table_exists():
+                """テーブルが存在するかどうかを確認する内部関数"""
+                # Oracleではテーブル名とスキーマ名は通常大文字で格納されるため変換
+                upper_schema = schema.upper()
+                upper_table = table_name.upper()
+                
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT COUNT(*) 
+                        FROM all_tables 
+                        WHERE owner = :owner AND table_name = :table_name
+                    """, {"owner": upper_schema, "table_name": upper_table})
+                    return cursor.fetchone()[0] > 0
+            
+            # テーブルが存在しない場合は作成
+            if not check_table_exists():
+                print(f"テーブル {schema}.{table_name} を作成します...")
+                create_table_sql = """
+                CREATE TABLE dbusers.users ( 
+                    "ID"  VARCHAR2(32 BYTE) DEFAULT ON NULL sys_guid(), 
+                    "FIRST_NAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
+                    "LAST_NAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
+                    "USERNAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
+                    "CREATED_ON"  TIMESTAMP(6) DEFAULT ON NULL current_timestamp, 
+                    CONSTRAINT "USER_PK" PRIMARY KEY ( "ID" )
+                )
+                """
+                with conn.cursor() as cursor:
+                    cursor.execute(create_table_sql)
+                print("テーブルの作成が完了しました")
+                # 挿入するデータを定義
+                user_data = [
+                    ('John', 'Doe', 'john.doe'),
+                    ('Jane', 'Smith', 'jane.smith'),
+                    ('Michael', 'Johnson', 'michael.j'),
+                    ('Emily', 'Davis', 'emily.d'),
+                    ('David', 'Wilson', 'david.wilson')
+                ]
+                
+                # データ挿入を実行
+                print("データの挿入を開始します...")
+                insert_sql = """
+                INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) 
+                VALUES (:1, :2, :3)
+                """
+                with conn.cursor() as cursor:
+                    # 複数行を一括挿入（効率的な処理）
+                    cursor.executemany(insert_sql, user_data)
+                    # トランザクションをコミット（変更を確定）
+                    conn.commit()
+                print(f"{len(user_data)} 件のデータを挿入しました")
+            else:
+                print(f"テーブル {schema}.{table_name} は既に存在します")
+    
+    except oracledb.Error as e:
+        # Oracle関連のエラー処理
+        error, = e.args
+        print(f"データベースエラーが発生しました: {error.message}")
+        # エラー発生時はトランザクションをロールバック
+        if 'conn' in locals():
+            conn.rollback()
+    except Exception as e:
+        # その他の一般的なエラー処理
+        print(f"予期しないエラーが発生しました: {str(e)}")
+
 def _get_key_pair():
     """
     Generates a public-private key pair for proof of possession.
@@ -165,3 +259,6 @@ with open('/tmp/dbwallet/sqlnet.ora', "w") as new_sqlnetora:
 # Generate scope for iam token auth
 scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/dbwallet")
+
+# Create users table and insert essential data
+create_and_insert_users()
