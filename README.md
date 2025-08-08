@@ -198,7 +198,7 @@ total 8
 -rw------- 1 oracle oinstall 1006 Aug  2 02:57 ewallet.p12
 -rw------- 1 oracle oinstall    0 Aug  2 02:56 ewallet.p12.lck
 
-# 以下のコマンドを実装して、Client側のWalletのBase64接続文字列を生成します。
+# 以下のコマンドを実行して、Client側のWalletのBase64接続文字列を生成します。
 [oracle@basedb23ai client_wallet]$ base64 cwallet.sso; echo "---SEPARATOR---"; base64 ewallet.p12;
 ofhONgAAAAYAAAAhBo9hbHDDm7XiQj+zs96yB/pEge8rtkE7RA0BZKIaND0HMIID6gIBAzCCA7AG
 CSqGSIb3DQEHAaCCA6EEggOdMIIDmTCCA5UGCSqGSIb3DQEHBqCCA4YwggOCAgEAMIIDewYJKoZI
@@ -365,7 +365,7 @@ COMMIT;
 
    - `SERVICE_NAME`: PDB のサービス名  
      例: `db0801_pdb1.subnet07111020.vcn04201554.oraclevcn.com`
-   - `WALLET_BASE64`: Client 側 Wallet の Base64 エンコード文字列  
+   - `WALLET_BASE64`: Client 側 Wallet の Base64 エンコード文字列（`cwallet.sso` と `ewallet.p12` の Base64 を連結したもの） 
    - `BASEDB_COMPARTMENT_OCID`: BaseDB が存在するコンパートメントの OCID  
    - `HOST`: BaseDB のパブリック IP アドレス  
    - `BASEDB_OCID`: BaseDB の OCID  
@@ -408,7 +408,15 @@ cd fn-connect-basedb-by-iam-token
 # ステップ7: 関数をアプリケーションにデプロイ
 fn deploy --app app-connect-basedb-by-iam-token
 
-# ステップ9: 関数を呼び出して動作確認
+# ステップ8: 関数を呼び出して動作確認
 fn invoke app-connect-basedb-by-iam-token access-basedb-func
+> [{"FIRST_NAME": "John", "LAST_NAME": "Doe", "USERNAME": "john.doe"}, {"FIRST_NAME": "Jane", "LAST_NAME": "Smith", "USERNAME": "jane.smith"}, {"FIRST_NAME": "Michael", "LAST_NAME": "Johnson", "USERNAME": "michael.j"}, {"FIRST_NAME": "Emily", "LAST_NAME": "Davis", "USERNAME": "emily.d"}, {"FIRST_NAME": "David", "LAST_NAME": "Wilson", "USERNAME": "david.wilson"}]
 
+```
+## 結びに
 
+この手順書では、OCI Function から Base Database に対して IAM トークン認証と TLS を用いた安全な接続方法を、環境構築からデプロイ・動作確認まで通して解説しました。  
+実運用では、Dynamic Group の範囲を最小限に絞り、不要なポリシーは付与しないなど、セキュリティの原則を守ることが重要です。  
+また、Wallet や証明書の更新期限、OCI IAM トークンの有効期限にも注意し、定期的なメンテナンスを行ってください。  
+
+この構成を理解すれば、BaseDB だけでなく他の OCI サービスへの Function 連携にも応用でき、サーバーレスで安全なシステム設計の幅が広がります。
