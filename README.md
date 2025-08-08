@@ -240,32 +240,75 @@ mCltYcjOZ/7m+zl2yY8+cYYE06vym0mjTC4emYPLK7fNXJsKA5zgr9KnPJHUTWxcqRehdc/NMu9L
 AAQUc9F8uuVTTPyNSt7R0IitWpxrLrwECIKIQr5kaxCGAgInEA==
 ```
 
-## 2. OCI IAMとBaseDBのトークン・ベースの認証設定
-### 2-1. IDENTITY_PROVIDER_TYPEの設定
-```
--- Alter System文でIdentity ProviderをIAMに設定
-SQL> ALTER SYSTEM SET IDENTITY_PROVIDER_TYPE=OCI_IAM SCOPE=BOTH;
-SQL> SELECT NAME, VALUE FROM V$PARAMETER WHERE NAME='identity_provider_type';
+## 2. OCI IAM と BaseDB のトークン・ベースの認証設定（Function 用）
+
+### 2-1. IDENTITY_PROVIDER_TYPE の設定
+BaseDB 側で IAM 認証を有効化します。  
+以下の SQL を実行して `IDENTITY_PROVIDER_TYPE` を `OCI_IAM` に設定します。
+
+```sql
+-- Identity Provider を IAM に設定
+ALTER SYSTEM SET IDENTITY_PROVIDER_TYPE=OCI_IAM SCOPE=BOTH;
+
+-- 設定確認
+SELECT NAME, VALUE 
+FROM V$PARAMETER 
+WHERE NAME='identity_provider_type';
+
+-- 実行結果例
 NAME                      VALUE
 ------------------------  -------------
 identity_provider_type    OCI_IAM
-
-```
-### 2-2. IAMグループとポリシーの作成
-IAMトークンを使用してデータベースに接続するためには、そもそもIAMユーザーがBaseDBサービスを使用するための権限をIAMポリシーとして許可されていなければならない。
-ここでは、そのサービスを使用できるポリシーを持つdbtoken_groupというグループを作成します。
-
-### 2-3. IAMユーザーとのDBスキーマのマッピング
-```
--- 排他的マッピングユーザーの作成
-CREATE USER dbusers IDENTIFIED GLOBALLY AS 'IAM_GROUP_NAME=dbtoken_group';
-grant connect,resource to dbusers;
-grant unlimited tablespace to dbusers;
 ```
 
-### 2-4. ユーザー表の作成
+---
 
+### 2-2. Dynamic Group とポリシーの作成
+OCI Function から IAM トークン経由で BaseDB にアクセスするため、  
+Function が実行される **アプリケーション** を Dynamic Group に登録し、そのグループに適切なポリシーを付与します。
+
+1. **Dynamic Group の作成**  
+   - OCI コンソール → **「アイデンティティとセキュリティ」→「Dynamic Groups」** → 「作成」
+   - 名前: `dg-function-basedb`
+   - ルール例（`app-connect-basedb-by-iam-token` が Function アプリケーション名）  
+     ```
+     ALL {resource.type = 'fnfunc', resource.compartment.id = '<アプリケーションのコンパートメントOCID>'}
+     ```
+     またはアプリケーション単位で指定する場合:  
+     ```
+     ANY {resource.id = '<FunctionのOCID>'}
+     ```
+
+2. **ポリシーの作成**  
+   - OCI コンソール → **「ポリシー」** → 「作成」
+   - 作成するポリシー例（同じコンパートメントにある BaseDB にアクセスさせる場合）:
+     ```
+     Allow dynamic-group dg-function-basedb to use autonomous-database-family in compartment <compartment_name>
+     Allow dynamic-group dg-function-basedb to use database-family in compartment <compartment_name>
+     ```
+
+> 💡 **ポイント**  
+> - Function は IAM トークンを使って DB に接続するため、`use database-family` 権限が必須です。  
+> - Dynamic Group のルールは対象 Function アプリケーションまたは Function に限定するのがセキュリティ的に安全です。
+
+---
+
+### 2-3. Dynamic Group と DB スキーマのマッピング
+Dynamic Group 名を IAM_GROUP_NAME のようにスキーマとマッピングします。
+
+```sql
+-- マッピング用スキーマ作成
+CREATE USER dbusers IDENTIFIED GLOBALLY AS 'IAM_GROUP_NAME=dg-function-basedb';
+GRANT connect, resource TO dbusers;
+GRANT unlimited tablespace TO dbusers;
 ```
+
+---
+
+### 2-4. ユーザー表の作成とデータ投入
+以下のスクリプトを `dbusers` スキーマで実行します。
+
+```sql
 CREATE TABLE dbusers.users ( 
     "ID"  VARCHAR2(32 BYTE) DEFAULT ON NULL sys_guid(), 
     "FIRST_NAME"  VARCHAR2(50 BYTE) NOT NULL ENABLE,  
@@ -285,14 +328,87 @@ INSERT INTO dbusers.users (FIRST_NAME, LAST_NAME, USERNAME) VALUES ('David', 'Wi
 COMMIT; 
 /
 ```
-@/home/oracle/a.sql
+
+> 💡 **補足**  
+> - `dbusers` スキーマは Dynamic Group とマッピングしているため、Function 実行時に IAM トークンで接続できます。  
+> - Dynamic Group 名は OCI 設定と DB マッピングで完全一致させる必要があります。
 
 ## 3. ファンクションのデプロイメント
+
 ### 3-1. アプリケーションの作成
-- 名前: app-connect-basedb-by-iam-token
-- VCN: 事前に作成したVCN
-- サブネットコンパートメント: VCNサブネットにいるコンパートメント
-- サブネット: 事前に作成したVCNのサブネット
-- シェイプ: GENERIC_X86
+このステップでは、OCI Function をデプロイするための **アプリケーション** を作成します。  
+アプリケーションは、関数の実行環境（VCN・サブネット・シェイプなど）を定義するコンテナのような役割を持っています。
+
+1. OCI コンソールにログインし、左上のメニューから **「開発者サービス」→「アプリケーション」** を選択します。  
+2. **「アプリケーションの作成」** をクリックします。  
+3. 以下のパラメータを入力します。  
+
+   - **名前**: `app-connect-basedb-by-iam-token`  
+     （後続の `fn deploy` コマンドで使用するので覚えておきます）
+   - **VCN**: 事前に作成した VCN を選択  
+   - **サブネットコンパートメント**: VCN サブネットが所属しているコンパートメントを選択  
+   - **サブネット**: 事前に作成した VCN 内のサブネットを選択（Public または Private サブネット、DB 接続要件に応じて選択）  
+   - **シェイプ**: `GENERIC_X86` を選択（汎用的な x86 ベースの実行環境）  
+
+> 💡 **注意:**  
+> - BaseDB に接続する場合、サブネットから DB へのネットワーク到達性が必要です。  
+> - Private サブネットを選ぶ場合は NAT Gateway や Service Gateway の設定を事前に行っておきます。  
+
+---
+
 ### 3-2. アプリケーション構成の設定
+アプリケーションを作成したら、関数が実行時に利用する **環境変数（Configuration）** を設定します。  
+これにより、ソースコードを修正せずに接続情報を切り替えたり、機密情報を安全に保持できます。
+
+1. 作成したアプリケーションを選択し、**「アプリケーション構成」** タブを開きます。  
+2. **「構成の追加」** をクリックし、以下のキーと値を設定します。  
+
+   - `SERVICE_NAME`: PDB のサービス名  
+     例: `db0801_pdb1.subnet07111020.vcn04201554.oraclevcn.com`
+   - `WALLET_BASE64`: Client 側 Wallet の Base64 エンコード文字列  
+   - `BASEDB_COMPARTMENT_OCID`: BaseDB が存在するコンパートメントの OCID  
+   - `HOST`: BaseDB のパブリック IP アドレス  
+   - `BASEDB_OCID`: BaseDB の OCID  
+   - `CN`: BaseDB のホスト名  
+     例: `basedb23ai`
+   - `BASEDB_REGION`: BaseDB が存在するリージョンコード  
+     例: `us-ashburn-1`
+
+---
+
 ### 3-3. ファンクションのデプロイメント
+
+以下の手順では、OCI Cloud Shell を利用して Function をデプロイします。  
+OCI CLI や Docker Registry の設定も含まれているため、初回は全手順を実行してください。
+
+```bash
+# ステップ1: リージョンのコンテキストを設定
+fn list context
+fn use context us-chicago-1
+
+# ステップ2: ファンクションのコンパートメントを設定
+fn update context oracle.compartment-id ocid1.compartment.oc1..aaaa...（自分のコンパートメントOCID）
+
+# ステップ3: リポジトリの設定（自分のOCIRリポジトリ）
+fn update context registry ord.ocir.io/sehubiapacprod/[repo-name-prefix]
+
+# ステップ4: 認証トークンの生成（OCIコンソールで作成）
+# 作成方法: ユーザ設定 → 認証トークン → トークンの生成
+# 生成されたトークンは Docker ログインに使用
+# 例: docker login -u 'tenancy_namespace/username@company.com' ord.ocir.io
+docker login -u 'sehubiapacprod/linfeng.yan@oracle.com' ord.ocir.io
+
+# ステップ5: コンパートメント内のアプリ一覧を確認
+fn list apps
+
+# ステップ6: ソースコード取得（GitHubからクローン）
+git clone https://github.com/yan-linfeng/fn-connect-basedb-by-iam-token
+cd fn-connect-basedb-by-iam-token
+
+# ステップ7: 関数をアプリケーションにデプロイ
+fn deploy --app app-connect-basedb-by-iam-token
+
+# ステップ9: 関数を呼び出して動作確認
+fn invoke app-connect-basedb-by-iam-token access-basedb-func
+
+
