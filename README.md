@@ -260,6 +260,7 @@ IAMトークンを使用してデータベースに接続するためには、�
 -- 排他的マッピングユーザーの作成
 CREATE USER dbusers IDENTIFIED GLOBALLY AS 'IAM_GROUP_NAME=dbtoken_group';
 grant connect,resource to dbusers;
+grant unlimited tablespace to dbusers;
 ```
 
 ### 2-4. ユーザー表の作成

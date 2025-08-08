@@ -8,6 +8,18 @@ from fdk import response
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
+# Get connection parameters from enviroment
+cn = os.getenv("CN")
+host = os.getenv("HOST")
+basedb_ocid = os.getenv("BASEDB_OCID")
+service_name = os.getenv("SERVICE_NAME")
+wallet_base64 = os.getenv("WALLET_BASE64")
+basedb_region = os.getenv("BASEDB_REGION")
+basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
+scope = "urn:oracle:db::id::{}::{}".format(basedb_compartment_ocid,basedb_ocid)
+
+
+
 #
 # Function Handler: executed every time the function is invoked
 #
@@ -17,7 +29,7 @@ def handler(ctx, data: io.BytesIO = None):
 def read_all_users(ctx):
     try:
         sql_statement = """
-            SELECT 1+1 from dual;
+            SELECT 1+1 from dual
         """
         
         client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
@@ -212,14 +224,6 @@ def restore_files_from_string(combined_str,
     except Exception as e:
         print(f"処理に失敗しました：{str(e)}")
 
-# Get connection parameters from enviroment
-cn = os.getenv("CN")
-host = os.getenv("HOST")
-basedb_ocid = os.getenv("BASEDB_OCID")
-service_name = os.getenv("SERVICE_NAME")
-wallet_base64 = os.getenv("WALLET_BASE64")
-basedb_region = os.getenv("BASEDB_REGION")
-basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
 
 # Restore wallet file from wallet_base64 combined string
 os.makedirs('/tmp/dbwallet', exist_ok=True)
@@ -235,8 +239,6 @@ with open('/function/instant23ai/sqlnet.ora') as sqlnetora:
 with open('/tmp/dbwallet/sqlnet.ora', "w") as new_sqlnetora:
     new_sqlnetora.write(sqlnetora_text)
 
-# Generate scope for iam token auth
-scope = "urn:oracle:db::id::{}::{}".format(basedb_region,basedb_compartment_ocid,basedb_ocid)
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/dbwallet")
 
 # Create users table and insert essential data
