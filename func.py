@@ -18,8 +18,6 @@ basedb_region = os.getenv("BASEDB_REGION")
 basedb_compartment_ocid = os.getenv("BASEDB_COMPARTMENT_OCID")
 scope = "urn:oracle:db::id::{}::{}".format(basedb_compartment_ocid,basedb_ocid)
 
-
-
 #
 # Function Handler: executed every time the function is invoked
 #
@@ -242,4 +240,4 @@ with open('/tmp/dbwallet/sqlnet.ora', "w") as new_sqlnetora:
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/dbwallet")
 
 # Create users table and insert essential data
-# drop_and_recreate_users_table()
+drop_and_recreate_users_table()
