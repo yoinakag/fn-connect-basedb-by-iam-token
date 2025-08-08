@@ -27,7 +27,7 @@ def handler(ctx, data: io.BytesIO = None):
 def read_all_users(ctx):
     try:
         sql_statement = """
-            SELECT * from users
+            SELECT FIRST_NAME, LAST_NAME, USERNAME from users
         """
         
         client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())

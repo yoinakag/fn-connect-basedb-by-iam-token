@@ -283,7 +283,7 @@ Function が実行される **アプリケーション** を Dynamic Group に�
    - OCI コンソール → **「ポリシー」** → 「作成」
    - 作成するポリシー例（同じコンパートメントにある BaseDB にアクセスさせる場合）:
      ```
-     Allow dynamic-group dg-function-basedb to use autonomous-database-family in compartment <compartment_name>
+     Allow dynamic-group dg-function-basedb to use database-connections in compartment <compartment_name>
      Allow dynamic-group dg-function-basedb to use database-family in compartment <compartment_name>
      ```
 
