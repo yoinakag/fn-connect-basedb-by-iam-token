@@ -57,80 +57,6 @@ def read_all_users(ctx):
         print('ERROR: Failed to read all users', ex, flush=True)
         raise
 
-def drop_and_recreate_users_table():
-    """
-    テーブルを存在チェックせず直接削除して再作成し、データを挿入する関数
-    スキーマは指定せず、テーブル名のみを使用します
-    
-    """
-    table_name = "users"  # スキーマ指定なし、テーブル名のみ
-    
-    try:
-        # データベース接続
-        client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
-        token_auth_config = {
-            "scope": scope,
-            "region": basedb_region
-        }
-        
-        with oracledb.connect(
-            access_token=_generate_access_token(client, token_auth_config),
-            dsn="iam",
-            externalauth=True
-        ) as conn:
-            print("データベース接続に成功しました")
-            
-            # 1. テーブルを削除（存在しない場合はエラーを回避）
-            # Oracle 12c以降でサポートされているIF EXISTSを使用
-            print(f"テーブル {table_name} を削除します...")
-            drop_sql = f"DROP TABLE {table_name} IF EXISTS"
-            with conn.cursor() as cursor:
-                cursor.execute(drop_sql)
-            print(f"テーブル {table_name} の削除処理が完了しました")
-            
-            # 2. 新しいテーブルを作成（スキーマ指定なし）
-            print(f"テーブル {table_name} を作成します...")
-            create_sql = f"""
-            CREATE TABLE {table_name} ( 
-                "ID"  VARCHAR2(32 BYTE) DEFAULT ON NULL sys_guid(), 
-                "FIRST_NAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
-                "LAST_NAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
-                "USERNAME"  VARCHAR2(50 BYTE) COLLATE "USING_NLS_COMP" NOT NULL ENABLE, 
-                "CREATED_ON"  TIMESTAMP(6) DEFAULT ON NULL current_timestamp, 
-                CONSTRAINT "USER_PK" PRIMARY KEY ( "ID" )
-            )
-            """
-            with conn.cursor() as cursor:
-                cursor.execute(create_sql)
-            print(f"テーブル {table_name} の作成が完了しました")
-            
-            # 3. データ挿入（スキーマ指定なし）
-            user_data = [
-                ('John', 'Doe', 'john.doe'),
-                ('Jane', 'Smith', 'jane.smith'),
-                ('Michael', 'Johnson', 'michael.j'),
-                ('Emily', 'Davis', 'emily.d'),
-                ('David', 'Wilson', 'david.wilson')
-            ]
-            
-            print("データの挿入を開始します...")
-            insert_sql = f"""
-            INSERT INTO {table_name} (FIRST_NAME, LAST_NAME, USERNAME) 
-            VALUES (:1, :2, :3)
-            """
-            with conn.cursor() as cursor:
-                cursor.executemany(insert_sql, user_data)
-                conn.commit()  # トランザクションを確定
-            print(f"{len(user_data)} 件のデータを挿入しました")
-    
-    except oracledb.Error as e:
-        error, = e.args
-        print(f"データベースエラー: {error.message}")
-        if 'conn' in locals():
-            conn.rollback()
-    except Exception as e:
-        print(f"エラー発生: {str(e)}")
-
 def _get_key_pair():
     """
     Generates a public-private key pair for proof of possession.
@@ -238,6 +164,3 @@ with open('/tmp/dbwallet/sqlnet.ora', "w") as new_sqlnetora:
     new_sqlnetora.write(sqlnetora_text)
 
 oracledb.init_oracle_client(lib_dir="/usr/lib/oracle/23/client64/lib", config_dir="/tmp/dbwallet")
-
-# Create users table and insert essential data
-drop_and_recreate_users_table()
