@@ -29,13 +29,13 @@ def handler(ctx, data: io.BytesIO = None):
 def read_all_users(ctx):
     try:
         sql_statement = """
-            SELECT 1+1 from dual
+            SELECT * from users
         """
         
         client = oci.identity_data_plane.DataplaneClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
         token_auth_config = {
-            "scope": "urn:oracle:db::id::ocid1.compartment.oc1..aaaaaaaardb3dtrfgv5dde2rqisd44p3f6ihjtbd3gnbtwq64nq6lzngxotq::ocid1.dbsystem.oc1.iad.anuwcljsak7gbriafwglhghmau64pqtimdyzqhkoryf7shdzs5ehuzo6t6sa",
-            "region": "us-ashburn-1"
+            "scope": scope,
+            "region": basedb_region
         }
         
         with oracledb.connect(
