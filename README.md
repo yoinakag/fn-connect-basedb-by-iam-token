@@ -14,8 +14,8 @@
 $ mkdir /home/oracle/wallet
 $ cd /home/oracle/wallet
 $ orapki wallet create -wallet . -pwd WElcome##123456 -auto_login
-$ orapki wallet add -wallet . -pwd WElcome##123456 -dn "CN=`hostname`" -keysize 2048 -self_signed -validity 3650
-$ orapki wallet export -wallet . -pwd WElcome##123456 -dn "CN=`hostname`" -cert dbcert.crt
+$ orapki wallet add -wallet . -pwd WElcome##123456 -dn "CN=$(hostname)" -keysize 2048 -self_signed -validity 3650
+$ orapki wallet export -wallet . -pwd WElcome##123456 -dn "CN=$(hostname)" -cert dbcert.crt
 $ cat dbcert.crt
 
 #2.PDBにTLS接続するようにtnsnamesに追記する
@@ -247,6 +247,8 @@ BaseDB 側で IAM 認証を有効化します。
 以下の SQL を実行して `IDENTITY_PROVIDER_TYPE` を `OCI_IAM` に設定します。
 
 ```sql
+-- 以下の SQL は、PDB に接続して実行します。
+
 -- Identity Provider を IAM に設定
 ALTER SYSTEM SET IDENTITY_PROVIDER_TYPE=OCI_IAM SCOPE=BOTH;
 
@@ -297,7 +299,8 @@ Function が実行される **アプリケーション** を Dynamic Group に�
 Dynamic Group 名を IAM_GROUP_NAME のようにスキーマとマッピングします。
 
 ```sql
--- マッピング用スキーマ作成
+-- 以下の SQL は、PDB に接続して実行します。
+-- マッピング用スキーマ作成 
 CREATE USER dbusers IDENTIFIED GLOBALLY AS 'IAM_GROUP_NAME=dg-function-basedb';
 GRANT connect, resource TO dbusers;
 GRANT unlimited tablespace TO dbusers;
@@ -309,6 +312,7 @@ GRANT unlimited tablespace TO dbusers;
 以下のスクリプトを `dbusers` スキーマで実行します。
 
 ```sql
+-- 以下の SQL は、PDB に接続して実行します。
 CREATE TABLE dbusers.users ( 
     "ID"  VARCHAR2(32 BYTE) DEFAULT ON NULL sys_guid(), 
     "FIRST_NAME"  VARCHAR2(50 BYTE) NOT NULL ENABLE,  
@@ -367,8 +371,10 @@ COMMIT;
      例: `db0801_pdb1.subnet07111020.vcn04201554.oraclevcn.com`
    - `WALLET_BASE64`: Client 側 Wallet の Base64 エンコード文字列（`cwallet.sso` と `ewallet.p12` の Base64 を連結したもの） 
    - `BASEDB_COMPARTMENT_OCID`: BaseDB が存在するコンパートメントの OCID  
+     例: ocid1.compartment.oc1..aaaa...
    - `HOST`: BaseDB のパブリック IP アドレス  
    - `BASEDB_OCID`: BaseDB の OCID  
+     例: ocid1.dbsystem.oc1...
    - `CN`: BaseDB のホスト名  
      例: `basedb23ai`
    - `BASEDB_REGION`: BaseDB が存在するリージョンコード  
