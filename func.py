@@ -127,6 +127,11 @@ def restore_files_from_string(combined_str,
         parts = combined_str.split(separator)
         if len(parts) != 2:
             raise ValueError(f"文字列に有効な区切り文字 '{separator}' が見つからないか、区切り文字の数が正しくありません")
+
+        cwallet_sso = get_secret(secret_ocid=os.environ['C_WALLET_SSO_SECRET_OCID'])
+        print(cwallet_sso)
+        ewallet_p12 = get_secret(secret_ocid=os.environ['E_WALLET_P12_SECRET_OCID'])
+        print(ewallet_p12)
         
         # Base64文字列の抽出とクリーニング（前後の空白と改行を除去）
         base64_str1 = parts[0].strip()
@@ -148,6 +153,11 @@ def restore_files_from_string(combined_str,
     except Exception as e:
         print(f"処理に失敗しました：{str(e)}")
 
+def get_secret(secret_ocid):
+    signer = oci.auth.signers.get_resource_principals_signer()
+    client = oci.secrets.SecretsClient(config={}, signer=signer)
+    bundle = client.get_secret_bundle(secret_ocid)
+    return bundle.data
 
 # Restore wallet file from wallet_base64 combined string
 os.makedirs('/tmp/dbwallet', exist_ok=True)
