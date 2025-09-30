@@ -155,8 +155,11 @@ def restore_files_from_string(combined_str,
         print(f"処理に失敗しました：{str(e)}")
 
 def get_secret(secret_ocid):
+print("===== get_secret1 =====")
     signer = oci.auth.signers.get_resource_principals_signer()
+print("===== get_secret2 =====")
     client = oci.secrets.SecretsClient(config={}, signer=signer)
+print("===== get_secret3 =====")
     bundle = client.get_secret_bundle(secret_ocid)
     return bundle.data
 
