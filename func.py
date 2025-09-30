@@ -128,6 +128,7 @@ def restore_files_from_string(combined_str,
         if len(parts) != 2:
             raise ValueError(f"文字列に有効な区切り文字 '{separator}' が見つからないか、区切り文字の数が正しくありません")
 
+        print("===== here =====")
         cwallet_sso = get_secret(secret_ocid=os.environ['C_WALLET_SSO_SECRET_OCID'])
         print(cwallet_sso)
         ewallet_p12 = get_secret(secret_ocid=os.environ['E_WALLET_P12_SECRET_OCID'])
