@@ -162,9 +162,9 @@ def get_secret(secret_ocid):
     print("===== get_secret1 =====")
     print(secret_ocid)
     client = oci.secrets.SecretsClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
-    bundle = client.get_secret_bundle(secret_ocid)
+    secret_base64 = client.get_secret_bundle(secret_ocid).data.secret_bundle_content.content.encode('utf-8')
     print("===== get_secret2 =====")
-    return bundle.data
+    return base64.b64decode(secret_base64).decode("utf-8")
 
 # Restore wallet file from wallet_base64 combined string
 os.makedirs('/tmp/dbwallet', exist_ok=True)
