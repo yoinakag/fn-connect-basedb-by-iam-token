@@ -159,9 +159,11 @@ def get_secret(secret_ocid):
 #    client = oci.secrets.SecretsClient(config={}, signer=signer)
 #    bundle = client.get_secret_bundle(secret_ocid)
 
+    print("===== get_secret1 =====")
+    print(secret_ocid)
     client = oci.secrets.SecretsClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
     bundle = client.get_secret_bundle(secret_ocid)
-    print("===== get_secret =====")
+    print("===== get_secret2 =====")
     return bundle.data
 
 # Restore wallet file from wallet_base64 combined string
