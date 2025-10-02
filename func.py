@@ -175,7 +175,8 @@ with open('/function/instant23ai/tnsnames.ora') as orig_tnsnamesora:
 #    newText=orig_tnsnamesora.read().replace('HOST_PLACEHOLDER', host).replace('SERVICE_NAME_PLACEHOLDER',service_name).replace('CN=CN_PLACEHOLDER', cn)
     newText = orig_tnsnamesora.read() \
         .replace('HOST_PLACEHOLDER', host) \
-        .replace('SERVICE_NAME_PLACEHOLDER', service_name)
+        .replace('SERVICE_NAME_PLACEHOLDER', service_name) \
+        .replace('(SSL_SERVER_CERT_DN="CN=CN_PLACEHOLDER")', '')
     print("===== newText =====")
     print(newText)
 with open('/tmp/dbwallet/tnsnames.ora', "w") as new_tnsnamesora:
