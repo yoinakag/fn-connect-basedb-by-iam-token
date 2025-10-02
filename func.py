@@ -174,7 +174,7 @@ restore_files_from_string(combined_str=wallet_base64)
 with open('/function/instant23ai/tnsnames.ora') as orig_tnsnamesora:
     newText=orig_tnsnamesora
     print("===== newText =====")
-    print(newText)
+    print(base64.b64decode(newText).decode("utf-8"))
     newText=newText.read().replace('HOST_PLACEHOLDER', host).replace('SERVICE_NAME_PLACEHOLDER',service_name).replace('CN_PLACEHOLDER', cn)
 with open('/tmp/dbwallet/tnsnames.ora', "w") as new_tnsnamesora:
     new_tnsnamesora.write(newText)
