@@ -172,9 +172,10 @@ restore_files_from_string(combined_str=wallet_base64)
 
 # Setup tnsnames.ora and sqlnet.ora file
 with open('/function/instant23ai/tnsnames.ora') as orig_tnsnamesora:
-    newText=orig_tnsnamesora.read().replace('HOST_PLACEHOLDER', host).replace('SERVICE_NAME_PLACEHOLDER',service_name).replace('CN_PLACEHOLDER', cn)
+    newText=orig_tnsnamesora
     print("===== newText =====")
-    print(orig_tnsnamesora.read())
+    print(newText)
+    newText=newText.read().replace('HOST_PLACEHOLDER', host).replace('SERVICE_NAME_PLACEHOLDER',service_name).replace('CN_PLACEHOLDER', cn)
 with open('/tmp/dbwallet/tnsnames.ora', "w") as new_tnsnamesora:
     new_tnsnamesora.write(newText)
 with open('/function/instant23ai/sqlnet.ora') as sqlnetora:
