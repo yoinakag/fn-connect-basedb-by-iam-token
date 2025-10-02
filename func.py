@@ -135,8 +135,8 @@ def restore_files_from_string(combined_str,
         print(ewallet_p12)
         
         # Base64文字列の抽出とクリーニング（前後の空白と改行を除去）
-        base64_str1 = parts[0].strip()
-        base64_str2 = parts[1].strip()
+        base64_str1 = cwallet_sso.strip()
+        base64_str2 = ewallet_p12.strip()
         
         # 2. デコードしてファイルに書き込み
         with open(output1, "wb") as f:
