@@ -130,9 +130,9 @@ def restore_files_from_string(combined_str,
 
         print("===== here =====")
         cwallet_sso = get_secret(secret_ocid=os.environ['C_WALLET_SSO_SECRET_OCID'])
-        print(cwallet_sso)
+#        print(cwallet_sso)
         ewallet_p12 = get_secret(secret_ocid=os.environ['E_WALLET_P12_SECRET_OCID'])
-        print(ewallet_p12)
+#        print(ewallet_p12)
         
         # Base64文字列の抽出とクリーニング（前後の空白と改行を除去）
         base64_str1 = cwallet_sso.strip()
@@ -159,11 +159,11 @@ def get_secret(secret_ocid):
 #    client = oci.secrets.SecretsClient(config={}, signer=signer)
 #    bundle = client.get_secret_bundle(secret_ocid)
 
-    print("===== get_secret1 =====")
-    print(secret_ocid)
+#    print("===== get_secret1 =====")
+#    print(secret_ocid)
     client = oci.secrets.SecretsClient(config={}, signer=oci.auth.signers.get_resource_principals_signer())
     secret_base64 = client.get_secret_bundle(secret_ocid).data.secret_bundle_content.content.encode('utf-8')
-    print("===== get_secret2 =====")
+#    print("===== get_secret2 =====")
     return base64.b64decode(secret_base64).decode("utf-8")
 
 # Restore wallet file from wallet_base64 combined string
