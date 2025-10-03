@@ -35,11 +35,16 @@ def read_all_users(ctx):
             "scope": scope,
             "region": basedb_region
         }
+
+        oracledb.connect(user="ADMIN", password="<DBパスワード>", dsn=dsn)
         
         with oracledb.connect(
-            access_token=_generate_access_token(client, token_auth_config),
-            dsn="iam",
-            externalauth=True
+#            access_token=_generate_access_token(client, token_auth_config),
+#            dsn="iam",
+#            externalauth=True
+            user="ADMIN",
+            password="Welcome123!!",
+            dsn=dsn
         ) as dbconnection:
             print(dbconnection)
             with dbconnection.cursor() as dbcursor:
