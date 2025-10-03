@@ -47,7 +47,7 @@ def read_all_users(ctx):
 #            dsn="iam",
 #            externalauth=True
             user="ADMIN",
-            password="Welcome1234!",
+            password="Welcome123!!",
             dsn=dsn
         ) as dbconnection:
             print(dbconnection)
