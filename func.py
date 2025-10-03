@@ -36,7 +36,11 @@ def read_all_users(ctx):
             "region": basedb_region
         }
 
-        oracledb.connect(user="ADMIN", password="<DBパスワード>", dsn=dsn)
+        dsn = oracledb.makedsn(
+            "adb.ap-tokyo-1.oraclecloud.com", # ホスト名 (DBの接続文字列から)
+            1522,                             # ポート番号
+            service_name="sya6vphk3pzlkhq_dbtokentestdb_tp.adb.oraclecloud.com"  # サービス名 (Low, High, Medium など)
+        )
         
         with oracledb.connect(
 #            access_token=_generate_access_token(client, token_auth_config),
